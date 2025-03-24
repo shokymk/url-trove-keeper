@@ -93,14 +93,14 @@ const BookmarkList = () => {
         </div>
         
         <Select
-          value={selectedCategory || ''}
-          onValueChange={(value) => setSelectedCategory(value || undefined)}
+          value={selectedCategory || 'all_categories'}
+          onValueChange={(value) => setSelectedCategory(value === 'all_categories' ? undefined : value)}
         >
           <SelectTrigger className="h-9 w-[160px] glass-input">
             <SelectValue placeholder="All categories" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All categories</SelectItem>
+            <SelectItem value="all_categories">All categories</SelectItem>
             {categories.map(category => (
               <SelectItem key={category} value={category}>{category}</SelectItem>
             ))}
@@ -108,14 +108,14 @@ const BookmarkList = () => {
         </Select>
         
         <Select
-          value={selectedTag || ''}
-          onValueChange={(value) => setSelectedTag(value || undefined)}
+          value={selectedTag || 'all_tags'}
+          onValueChange={(value) => setSelectedTag(value === 'all_tags' ? undefined : value)}
         >
           <SelectTrigger className="h-9 w-[160px] glass-input">
             <SelectValue placeholder="All tags" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All tags</SelectItem>
+            <SelectItem value="all_tags">All tags</SelectItem>
             {tags.map(tag => (
               <SelectItem key={tag} value={tag}>{tag}</SelectItem>
             ))}
