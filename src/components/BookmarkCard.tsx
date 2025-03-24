@@ -36,7 +36,8 @@ const BookmarkCard = ({ bookmark }: BookmarkCardProps) => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [imageError, setImageError] = useState(false);
   
-  const handleOpenURL = () => {
+  const handleOpenURL = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     if (!bookmark.isRead) {
       markAsRead(bookmark.id);
     }
@@ -49,14 +50,22 @@ const BookmarkCard = ({ bookmark }: BookmarkCardProps) => {
     setIsDeleteDialogOpen(false);
   };
   
-  const handleMarkAsRead = () => {
+  const handleMarkAsRead = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     markAsRead(bookmark.id);
     toast.success('Marked as read');
+  };
+
+  const handleCardClick = () => {
+    setIsEditDialogOpen(true);
   };
   
   return (
     <>
-      <div className="glass-card p-4 relative overflow-hidden group">
+      <div 
+        className="glass-card p-4 relative overflow-hidden group cursor-pointer" 
+        onClick={handleCardClick}
+      >
         <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         
         <div className="flex items-start gap-4">
@@ -72,9 +81,20 @@ const BookmarkCard = ({ bookmark }: BookmarkCardProps) => {
           )}
           
           <div className="flex-1 min-w-0">
-            <h3 className="font-medium text-lg truncate hover:text-primary transition-colors duration-200 cursor-pointer" onClick={handleOpenURL}>
-              {bookmark.title}
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="font-medium text-lg truncate hover:text-primary transition-colors duration-200">
+                {bookmark.title}
+              </h3>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 ml-2 flex-shrink-0" 
+                onClick={handleOpenURL}
+                title="Open URL"
+              >
+                <ExternalLink className="h-4 w-4" />
+              </Button>
+            </div>
             
             <p className="text-sm text-muted-foreground mt-1 truncate">
               <span className="inline-flex items-center">
@@ -105,24 +125,30 @@ const BookmarkCard = ({ bookmark }: BookmarkCardProps) => {
           <div className="ml-4 flex flex-col items-end">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-[160px]">
-                <DropdownMenuItem onClick={handleOpenURL} className="cursor-pointer">
+                <DropdownMenuItem onClick={(e) => handleOpenURL(e)} className="cursor-pointer">
                   <ExternalLink className="mr-2 h-4 w-4" /> Open URL
                 </DropdownMenuItem>
                 {!bookmark.isRead && (
-                  <DropdownMenuItem onClick={handleMarkAsRead} className="cursor-pointer">
+                  <DropdownMenuItem onClick={(e) => handleMarkAsRead(e)} className="cursor-pointer">
                     <Check className="mr-2 h-4 w-4" /> Mark as read
                   </DropdownMenuItem>
                 )}
-                <DropdownMenuItem onClick={() => setIsEditDialogOpen(true)} className="cursor-pointer">
+                <DropdownMenuItem onClick={(e) => {
+                  e.stopPropagation();
+                  setIsEditDialogOpen(true);
+                }} className="cursor-pointer">
                   <Edit className="mr-2 h-4 w-4" /> Edit
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="cursor-pointer text-destructive focus:text-destructive">
+                <DropdownMenuItem onClick={(e) => {
+                  e.stopPropagation();
+                  setIsDeleteDialogOpen(true);
+                }} className="cursor-pointer text-destructive focus:text-destructive">
                   <Trash className="mr-2 h-4 w-4" /> Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>

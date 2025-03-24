@@ -9,8 +9,15 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
-import { X, Plus, Link as LinkIcon, Loader2 } from 'lucide-react';
+import { X, Plus, Link as LinkIcon, Loader2, Check } from 'lucide-react';
 import { fetchUrlMetadata } from '@/lib/metadata';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface BookmarkFormProps {
   bookmarkToEdit?: Bookmark;
@@ -32,6 +39,7 @@ const BookmarkForm = ({ bookmarkToEdit, isOpen, onClose }: BookmarkFormProps) =>
     image: null,
   });
   
+  const [titleOptions, setTitleOptions] = useState<string[]>([]);
   const [newTag, setNewTag] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoadingMetadata, setIsLoadingMetadata] = useState(false);
@@ -47,6 +55,7 @@ const BookmarkForm = ({ bookmarkToEdit, isOpen, onClose }: BookmarkFormProps) =>
         isRead: bookmarkToEdit.isRead,
         image: bookmarkToEdit.image || null,
       });
+      setTitleOptions([]);
     } else {
       setFormData({
         url: '',
@@ -57,6 +66,7 @@ const BookmarkForm = ({ bookmarkToEdit, isOpen, onClose }: BookmarkFormProps) =>
         isRead: false,
         image: null,
       });
+      setTitleOptions([]);
     }
   }, [bookmarkToEdit, isOpen]);
   
@@ -88,19 +98,27 @@ const BookmarkForm = ({ bookmarkToEdit, isOpen, onClose }: BookmarkFormProps) =>
     try {
       const metadata = await fetchUrlMetadata(url);
       
-      if (metadata.title) {
-        setFormData(prev => ({
-          ...prev,
-          title: prev.title || metadata.title || '',
-          description: prev.description || metadata.description || '',
-          image: metadata.image
-        }));
+      // Set title options for dropdown
+      if (metadata.titleOptions && metadata.titleOptions.length > 0) {
+        setTitleOptions(metadata.titleOptions);
       }
+      
+      // Only set values if we have metadata and the fields are empty
+      setFormData(prev => ({
+        ...prev,
+        title: prev.title || metadata.title || '',
+        description: prev.description || metadata.description || '',
+        image: prev.image || metadata.image
+      }));
     } catch (error) {
       console.error('Error fetching metadata:', error);
     } finally {
       setIsLoadingMetadata(false);
     }
+  };
+  
+  const handleTitleSelect = (selectedTitle: string) => {
+    setFormData(prev => ({ ...prev, title: selectedTitle }));
   };
   
   const handleToggleChange = (value: boolean) => {
@@ -258,6 +276,27 @@ const BookmarkForm = ({ bookmarkToEdit, isOpen, onClose }: BookmarkFormProps) =>
                 className={`glass-input ${errors.title ? 'border-destructive' : ''}`}
               />
               {errors.title && <p className="text-sm text-destructive">{errors.title}</p>}
+              
+              {titleOptions.length > 1 && (
+                <div className="mt-2">
+                  <Label htmlFor="titleSelect">Suggested Titles</Label>
+                  <Select onValueChange={handleTitleSelect}>
+                    <SelectTrigger className="w-full glass-input mt-1">
+                      <SelectValue placeholder="Select a title" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {titleOptions.map((title, index) => (
+                        <SelectItem key={index} value={title}>
+                          <div className="flex items-center">
+                            <span className="truncate mr-2">{title}</span>
+                            {title === formData.title && <Check className="h-3 w-3" />}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
             
             <div className="space-y-2">
