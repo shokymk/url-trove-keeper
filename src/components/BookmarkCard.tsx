@@ -34,6 +34,7 @@ const BookmarkCard = ({ bookmark }: BookmarkCardProps) => {
   const { markAsRead, deleteBookmark } = useBookmarkStore();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [imageError, setImageError] = useState(false);
   
   const handleOpenURL = () => {
     if (!bookmark.isRead) {
@@ -58,7 +59,18 @@ const BookmarkCard = ({ bookmark }: BookmarkCardProps) => {
       <div className="glass-card p-4 relative overflow-hidden group">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         
-        <div className="flex items-start justify-between">
+        <div className="flex items-start gap-4">
+          {bookmark.image && !imageError && (
+            <div className="flex-shrink-0 w-24 h-24 rounded-md overflow-hidden bg-secondary/20">
+              <img 
+                src={bookmark.image} 
+                alt=""
+                className="w-full h-full object-cover"
+                onError={() => setImageError(true)}
+              />
+            </div>
+          )}
+          
           <div className="flex-1 min-w-0">
             <h3 className="font-medium text-lg truncate hover:text-primary transition-colors duration-200 cursor-pointer" onClick={handleOpenURL}>
               {bookmark.title}

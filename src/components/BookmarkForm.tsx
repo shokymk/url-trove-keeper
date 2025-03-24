@@ -6,10 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
-import { X, Plus } from 'lucide-react';
+import { X, Plus, Link as LinkIcon, Loader2 } from 'lucide-react';
+import { fetchUrlMetadata } from '@/lib/metadata';
 
 interface BookmarkFormProps {
   bookmarkToEdit?: Bookmark;
@@ -28,10 +29,12 @@ const BookmarkForm = ({ bookmarkToEdit, isOpen, onClose }: BookmarkFormProps) =>
     tags: [],
     category: '',
     isRead: false,
+    image: null,
   });
   
   const [newTag, setNewTag] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isLoadingMetadata, setIsLoadingMetadata] = useState(false);
   
   useEffect(() => {
     if (bookmarkToEdit) {
@@ -42,6 +45,7 @@ const BookmarkForm = ({ bookmarkToEdit, isOpen, onClose }: BookmarkFormProps) =>
         tags: [...bookmarkToEdit.tags],
         category: bookmarkToEdit.category || '',
         isRead: bookmarkToEdit.isRead,
+        image: bookmarkToEdit.image || null,
       });
     } else {
       setFormData({
@@ -51,6 +55,7 @@ const BookmarkForm = ({ bookmarkToEdit, isOpen, onClose }: BookmarkFormProps) =>
         tags: [],
         category: '',
         isRead: false,
+        image: null,
       });
     }
   }, [bookmarkToEdit, isOpen]);
@@ -66,6 +71,35 @@ const BookmarkForm = ({ bookmarkToEdit, isOpen, onClose }: BookmarkFormProps) =>
         delete newErrors[name];
         return newErrors;
       });
+    }
+    
+    // Auto-fetch metadata when URL is inputted
+    if (name === 'url' && value.trim() !== '') {
+      const urlRegex = /^(https?:\/\/)?([\w-]+(\.[\w-]+)+)([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?$/;
+      if (urlRegex.test(value.trim())) {
+        fetchMetadata(value.trim());
+      }
+    }
+  };
+  
+  const fetchMetadata = async (url: string) => {
+    setIsLoadingMetadata(true);
+    
+    try {
+      const metadata = await fetchUrlMetadata(url);
+      
+      if (metadata.title) {
+        setFormData(prev => ({
+          ...prev,
+          title: prev.title || metadata.title || '',
+          description: prev.description || metadata.description || '',
+          image: metadata.image
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching metadata:', error);
+    } finally {
+      setIsLoadingMetadata(false);
     }
   };
   
@@ -98,8 +132,12 @@ const BookmarkForm = ({ bookmarkToEdit, isOpen, onClose }: BookmarkFormProps) =>
     
     if (!formData.url.trim()) {
       newErrors.url = 'URL is required';
-    } else if (!/^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/.test(formData.url)) {
-      newErrors.url = 'Please enter a valid URL';
+    } else {
+      // Improved URL validation regex that accepts YouTube URLs with parameters
+      const urlRegex = /^(https?:\/\/)?([\w-]+(\.[\w-]+)+)([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?$/;
+      if (!urlRegex.test(formData.url.trim())) {
+        newErrors.url = 'Please enter a valid URL';
+      }
     }
     
     if (!formData.title.trim()) {
@@ -155,22 +193,59 @@ const BookmarkForm = ({ bookmarkToEdit, isOpen, onClose }: BookmarkFormProps) =>
           <DialogTitle className="text-2xl font-semibold tracking-tight">
             {isEditMode ? 'Edit Bookmark' : 'Add New Bookmark'}
           </DialogTitle>
+          <DialogDescription>
+            Save your favorite URLs with metadata and organize them with tags.
+          </DialogDescription>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-6 py-4">
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="url">URL</Label>
-              <Input
-                id="url"
-                name="url"
-                placeholder="https://example.com"
-                value={formData.url}
-                onChange={handleInputChange}
-                className={`glass-input ${errors.url ? 'border-destructive' : ''}`}
-              />
+              <div className="relative">
+                <Input
+                  id="url"
+                  name="url"
+                  placeholder="https://example.com"
+                  value={formData.url}
+                  onChange={handleInputChange}
+                  className={`glass-input pr-10 ${errors.url ? 'border-destructive' : ''}`}
+                />
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                  {isLoadingMetadata ? (
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                  ) : (
+                    <LinkIcon className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </div>
+              </div>
               {errors.url && <p className="text-sm text-destructive">{errors.url}</p>}
             </div>
+            
+            {formData.image && (
+              <div className="space-y-2">
+                <Label>Thumbnail</Label>
+                <div className="relative w-full h-32 rounded-md overflow-hidden bg-secondary/20">
+                  <img 
+                    src={formData.image} 
+                    alt="URL thumbnail" 
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      // Hide image on error
+                      (e.target as HTMLImageElement).style.display = 'none';
+                      setFormData(prev => ({ ...prev, image: null }));
+                    }} 
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, image: null }))}
+                    className="absolute top-2 right-2 bg-background/80 rounded-full p-1 hover:bg-background"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            )}
             
             <div className="space-y-2">
               <Label htmlFor="title">Title</Label>

@@ -9,6 +9,7 @@ export interface Bookmark {
   tags: string[];
   category?: string;
   isRead: boolean;
+  image?: string | null;
 }
 
 export type BookmarkFormData = Omit<Bookmark, 'id' | 'dateAdded' | 'lastVisited'> & {

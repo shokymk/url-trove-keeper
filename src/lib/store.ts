@@ -33,6 +33,7 @@ export const useBookmarkStore = create<BookmarkState>()(
           tags: bookmarkData.tags,
           category: bookmarkData.category,
           isRead: bookmarkData.isRead,
+          image: bookmarkData.image || null,
           dateAdded: new Date(),
         };
         
