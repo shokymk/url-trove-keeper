@@ -43,7 +43,7 @@ const BookmarkCard = ({ bookmark }: BookmarkCardProps) => {
     if (!bookmark.isRead) {
       markAsRead(bookmark.id);
     }
-    window.open(bookmark.url, '_blank', 'noopener,noreferrer');
+    window.open(bookmark.url, '_blank');
   };
   
   const handleDelete = () => {
@@ -88,9 +88,9 @@ const BookmarkCard = ({ bookmark }: BookmarkCardProps) => {
                 {bookmark.title}
               </h3>
               <Button 
-                variant="ghost" 
+                variant="outline" 
                 size="icon" 
-                className="h-8 w-8 ml-2 flex-shrink-0" 
+                className="h-8 w-8 ml-2 flex-shrink-0 z-10 relative border-muted hover:border-primary hover:bg-primary hover:text-primary-foreground transition-all shadow-sm hover:shadow-md" 
                 onClick={handleOpenURL}
                 title="Open URL"
               >
@@ -127,7 +127,7 @@ const BookmarkCard = ({ bookmark }: BookmarkCardProps) => {
           <div className="ml-4 flex flex-col items-end">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
+                <Button variant="ghost" size="icon" className="h-8 w-8 z-10 relative" onClick={(e) => e.stopPropagation()}>
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
