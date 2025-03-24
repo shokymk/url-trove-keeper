@@ -36,8 +36,10 @@ const BookmarkCard = ({ bookmark }: BookmarkCardProps) => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [imageError, setImageError] = useState(false);
   
-  const handleOpenURL = (e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
+  const handleOpenURL = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation(); // Ensure the click doesn't bubble up to the card
+    
     if (!bookmark.isRead) {
       markAsRead(bookmark.id);
     }
@@ -50,8 +52,8 @@ const BookmarkCard = ({ bookmark }: BookmarkCardProps) => {
     setIsDeleteDialogOpen(false);
   };
   
-  const handleMarkAsRead = (e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
+  const handleMarkAsRead = (e: React.MouseEvent) => {
+    e.stopPropagation();
     markAsRead(bookmark.id);
     toast.success('Marked as read');
   };
@@ -130,11 +132,11 @@ const BookmarkCard = ({ bookmark }: BookmarkCardProps) => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-[160px]">
-                <DropdownMenuItem onClick={(e) => handleOpenURL(e)} className="cursor-pointer">
+                <DropdownMenuItem onClick={handleOpenURL} className="cursor-pointer">
                   <ExternalLink className="mr-2 h-4 w-4" /> Open URL
                 </DropdownMenuItem>
                 {!bookmark.isRead && (
-                  <DropdownMenuItem onClick={(e) => handleMarkAsRead(e)} className="cursor-pointer">
+                  <DropdownMenuItem onClick={handleMarkAsRead} className="cursor-pointer">
                     <Check className="mr-2 h-4 w-4" /> Mark as read
                   </DropdownMenuItem>
                 )}
