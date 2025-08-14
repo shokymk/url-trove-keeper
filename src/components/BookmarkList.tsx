@@ -20,11 +20,16 @@ const BookmarkList = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   
   useEffect(() => {
-    let results = bookmarks;
+    let results = [...bookmarks];
+    
+    // Apply search query first
+    if (searchQuery) {
+      results = searchBookmarks(searchQuery);
+    }
     
     // Apply category filter
     if (selectedCategory) {
-      results = getCategoryBookmarks(selectedCategory);
+      results = results.filter(bookmark => bookmark.category === selectedCategory);
     }
     
     // Apply tag filter
@@ -39,20 +44,13 @@ const BookmarkList = () => {
       results = results.filter(bookmark => !bookmark.isRead);
     }
     
-    // Apply search query
-    if (searchQuery) {
-      results = searchBookmarks(searchQuery).filter(bookmark => 
-        results.some(b => b.id === bookmark.id)
-      );
-    }
-    
     // Sort by date (newest first)
-    results = [...results].sort((a, b) => 
+    results = results.sort((a, b) => 
       new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime()
     );
     
     setFilteredBookmarks(results);
-  }, [bookmarks, searchQuery, selectedCategory, selectedTag, readFilter]);
+  }, [bookmarks, searchQuery, selectedCategory, selectedTag, readFilter, getCategoryBookmarks, getTaggedBookmarks, searchBookmarks]);
   
   const clearFilters = () => {
     setSearchQuery('');
